@@ -1,12 +1,45 @@
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
 import xgboost as xgb
-import shap
-import matplotlib.pyplot as plt
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from datetime import timedelta
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+# --- Helper: Recursive Forecasting ---
+def recursive_forecast(df, model, features, start_ts, forecast_range):
+    df_forecast = df.copy()
+    preds = []
+    timestamps = pd.date_range(start=start_ts, periods=forecast_range, freq="H", tz="Europe/London")
+
+    for t in timestamps:
+        row = df_forecast.loc[t - pd.Timedelta(hours=1)].copy()
+
+        lag_24h = df_forecast.loc[t - pd.Timedelta(hours=24), "load"] if (t - pd.Timedelta(hours=24)) in df_forecast.index else preds[-24] if len(preds) >= 24 else np.nan
+        lag_168h = df_forecast.loc[t - pd.Timedelta(hours=168), "load"] if (t - pd.Timedelta(hours=168)) in df_forecast.index else preds[-168] if len(preds) >= 168 else np.nan
+
+        feature_row = {
+            "temp_C": row["temp_C"],
+            "hour": t.hour,
+            "dayofweek": t.dayofweek,
+            "is_weekend": t.weekday() >= 5,
+            "is_peak_hour": t.hour in [7, 8, 17, 18, 19],
+            "is_holiday": row.get("is_holiday", False),
+            "lag_24h": lag_24h,
+            "lag_168h": lag_168h
+        }
+
+        if np.any(pd.isnull(list(feature_row.values()))):
+            preds.append(np.nan)
+            continue
+
+        X = pd.DataFrame([feature_row])
+        pred = model.predict(X)[0]
+        preds.append(pred)
+        df_forecast.loc[t, "load"] = pred
+
+    return pd.DataFrame({"timestamp": timestamps, "Predicted Load": preds}).set_index("timestamp")
 
 # --- Load data and model ---
 @st.cache_data
@@ -38,18 +71,18 @@ This tool demonstrates a real-time electricity demand forecast model built with 
 It highlights forecast accuracy, peak load risk, and model explainability — designed with energy trading & grid ops in mind.
 """)
 
-# --- Load data ---
 df = load_data()
 model = load_model()
 features = ["temp_C", "hour", "dayofweek", "is_weekend", "is_peak_hour", "is_holiday", "lag_24h", "lag_168h"]
 
-# --- Sidebar: Forecast Controls ---
+# Sidebar
 st.sidebar.header("🔧 Forecast Settings")
 valid_dates = df.index.normalize().unique()
 selected_date = st.sidebar.date_input("Select a date to simulate forecast:", value=valid_dates[-2], min_value=valid_dates[0], max_value=valid_dates[-2])
 forecast_range = st.sidebar.slider("Forecast range (hours):", 6, 24, 24)
+use_recursive = st.sidebar.checkbox("🔁 Use Recursive Forecasting", value=False)
 
-# --- Filter & Prepare Input ---
+# Data slice
 start_ts = pd.Timestamp(selected_date, tz="Europe/London")
 end_ts = start_ts + timedelta(hours=forecast_range - 1)
 df_day = df.loc[start_ts:end_ts].copy()
@@ -57,22 +90,29 @@ df_day = df.loc[start_ts:end_ts].copy()
 if df_day.empty:
     st.warning("No data available for this date.")
 else:
-    # --- Predict ---
-    X_day = df_day[features]
-    y_true = df_day["load"]
-    y_pred = model.predict(X_day)
+    if use_recursive:
+        st.markdown("🌀 **Using recursive forecasting simulation...**")
+        df_preds = recursive_forecast(df, model, features, start_ts, forecast_range)
+        df_day["Predicted Load"] = df_preds["Predicted Load"]
+    else:
+        st.markdown("✅ **Using direct prediction from known inputs...**")
+        X_day = df_day[features]
+        df_day["Predicted Load"] = model.predict(X_day)
 
-    df_day["Predicted Load"] = y_pred
-    df_day["Error"] = y_pred - y_true
+    y_true = df_day["load"]
+    df_day["Error"] = df_day["Predicted Load"] - y_true
     df_day["Error %"] = df_day["Error"] / y_true * 100
     df_day["Imbalance Risk"] = df_day["Error %"].abs() > 5
 
-    # --- Visual: Actual vs Predicted ---
+    # Peak load marker
+    threshold = df["load"].quantile(0.90)
+    df_day["Peak Load"] = df_day["load"] >= threshold
+
+    # Visuals
     st.subheader("📈 Actual vs Predicted Load")
     fig1 = px.line(df_day, x=df_day.index, y=["load", "Predicted Load"], labels={"value": "MW", "timestamp": "Time"})
     st.plotly_chart(fig1, use_container_width=True)
 
-    # --- Visual: Forecast Error with Risk Flag ---
     st.subheader("⚠️ Forecast Error (%) with Imbalance Risk")
     fig2 = px.scatter(df_day, x=df_day.index, y="Error %", color="Imbalance Risk",
                       color_discrete_map={True: "red", False: "blue"}, labels={"Error %": "Forecast Error (%)"})
@@ -80,23 +120,20 @@ else:
     fig2.add_hline(y=-5, line_dash="dot", line_color="gray")
     st.plotly_chart(fig2, use_container_width=True)
 
-    # --- Visual: Highlight Peak Load Hours ---
     st.subheader("📊 Peak Load Detection")
-    threshold = df["load"].quantile(0.90)
-    df_day["Peak Load"] = df_day["load"] >= threshold
     fig3 = px.line(df_day, x=df_day.index, y="load", title="Load with Peak Markers")
     fig3.add_scatter(x=df_day[df_day["Peak Load"]].index,
                      y=df_day[df_day["Peak Load"]]["load"],
                      mode="markers", marker=dict(color="orange", size=6), name="Peak Load")
     st.plotly_chart(fig3, use_container_width=True)
 
-     # --- Summary Metrics ---
+    # Performance
     st.subheader("📋 Forecast Performance")
-    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-    mae = mean_absolute_error(y_true, y_pred)
+    rmse = np.sqrt(mean_squared_error(y_true, df_day["Predicted Load"]))
+    mae = mean_absolute_error(y_true, df_day["Predicted Load"])
     st.markdown(f"**RMSE:** {rmse:.2f} MW  |  **MAE:** {mae:.2f} MW")
 
-    # --- New: Forecast Insights
+    # Insights
     st.subheader("🧠 Insights from This Forecast")
     risky_hours = df_day[df_day["Imbalance Risk"]].index.hour.unique().tolist()
     if risky_hours:
@@ -107,7 +144,7 @@ else:
     else:
         st.info("✅ No high-risk forecast errors detected in this window.")
 
-    # --- New: Flex Asset Strategy Placeholder
+    # Flex placeholder
     st.subheader("🔌 Example Flex Response")
     if df_day["Imbalance Risk"].any():
         st.markdown("""
@@ -118,11 +155,11 @@ else:
     else:
         st.write("No corrective flex action needed in this interval.")
 
-    # --- Why I Built This
+    # Why built
     with st.expander("📘 Why I Built This Tool"):
         st.markdown("""
         I created this app to simulate the real-world challenges of intra-day demand forecasting.
-        
+
         By integrating weather data, engineered lag features, and real-time forecast simulation,
         I wanted to explore:
         - How small errors can escalate during peak demand
