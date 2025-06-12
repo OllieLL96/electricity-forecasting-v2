@@ -212,37 +212,31 @@ if st.button("Generate Insight"):
     except Exception as e:
         st.error(f"LLM call failed: {e}")
 
-    # 📘 About This Project
-with st.expander("📘 About This Project", expanded=False):
+# 📘 Project Overview
+with st.expander("📘 Project Overview", expanded=False):
     st.markdown("""
 **UK Electricity Demand Forecasting App**
 
-This app simulates short-term load forecasting with models like XGBoost, Random Forest, and Linear Regression.
+This tool simulates short-term load forecasting using multiple models including **XGBoost**, **Random Forest**, and **Linear Regression**.
+
+It integrates weather data, engineered lag features, and calendar effects to simulate real-world forecasting challenges — including during peak demand or under stress test scenarios.
 
 🔍 **Data Sources:**
 - ENTSO-E Transparency Platform (UK load data 2015–2020)
 - Open-Meteo Historical API (London temperature)
 - UK Public Holidays (calendar flags)
 
-🧠 **Features:**
-- Actual vs predicted load
-- Forecast error % and imbalance risk
-- Recursive simulation with stress test
-- Peak load detection
+🧠 **Key Features:**
+- Actual vs predicted load visualization
+- Forecast error % and imbalance risk alerts
+- Recursive simulation with optional stress testing
+- Peak load detection and flagging
 - GPT-powered insight assistant (OpenAI API)
 
-Built as a practical forecasting demo for energy market applications, showcasing how operational tools can support flexibility, imbalance risk detection, and decision-making in a renewable-heavy grid environment.
+🛠️ **Why I Built This**
+I created this app to explore how forecasting models can support real-time energy trading and grid operations. It showcases:
+- How small forecast errors can escalate during peak hours
+- How model-driven tools can flag operational risks early
+- How automation and explainability could assist decision-makers in flexible, renewables-heavy power systems
     """)
 
-    
-    # Why built
-    with st.expander("📘 Why I Built This Tool"):
-        st.markdown("""
-        I created this app to simulate the real-world challenges of intra-day demand forecasting.
-
-        By integrating weather data, engineered lag features, and real-time forecast simulation,
-        I wanted to explore:
-        - How small errors can escalate during peak demand
-        - How operational risk flags could help traders and grid operators make better decisions
-        - How tools like this might support Octopus' vision of a smart, flexible, decarbonised grid
-        """)
