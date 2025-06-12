@@ -16,6 +16,11 @@ def recursive_forecast(df, model, features, start_ts, forecast_range):
     for t in timestamps:
         row = df_forecast.loc[t - pd.Timedelta(hours=1)].copy()
 
+        if stress_test:
+            if not pd.isnull(lag_24h): lag_24h *= np.random.normal(1, 0.05)
+            if not pd.isnull(lag_168h): lag_168h *= np.random.normal(1, 0.05)
+            row["temp_C"] -= np.random.choice([0, 2, 4])
+
         lag_24h = df_forecast.loc[t - pd.Timedelta(hours=24), "load"] if (t - pd.Timedelta(hours=24)) in df_forecast.index else preds[-24] if len(preds) >= 24 else np.nan
         lag_168h = df_forecast.loc[t - pd.Timedelta(hours=168), "load"] if (t - pd.Timedelta(hours=168)) in df_forecast.index else preds[-168] if len(preds) >= 168 else np.nan
 
