@@ -57,8 +57,5 @@ This app showcases not just model performance but **when** errors happen, highli
 
 ## ✅ Try It Live
 
-> (If hosted on Streamlit Cloud, include your app link here)
+> (If hosted on Streamlit Cloud, [include your app link here](https://electricity-forecasting-v2.streamlit.app/))
 
----
-
-Made with ❤️ to demonstrate my interest in energy analytics, forecasting, and operational risk — especially for companies like **Octopus Energy**.
