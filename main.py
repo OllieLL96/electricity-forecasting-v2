@@ -55,12 +55,17 @@ def load_data():
 
 @st.cache_resource
 def load_model():
-    model = xgb.XGBRegressor()
+    st.write("📦 Loading data...")
     df = load_data()
+    
+    st.write("🔧 Fitting model...")
+    model = xgb.XGBRegressor()
     features = ["temp_C", "hour", "dayofweek", "is_weekend", "is_peak_hour", "is_holiday", "lag_24h", "lag_168h"]
     X = df[features]
     y = df["load"]
+    
     model.fit(X, y)
+    st.write("✅ Model ready.")
     return model
 
 # --- App UI ---
