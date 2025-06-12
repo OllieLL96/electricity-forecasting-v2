@@ -177,42 +177,40 @@ else:
         """)
     else:
         st.write("No corrective flex action needed in this interval.")
-    # 💬 LLM Forecast Insight Section
-st.subheader("💬 Ask the AI about this forecast")
 
-user_question = st.text_area(
-    "Ask a question or request a summary of the forecast:",
-    placeholder="e.g. What risks are present in this forecast window?"
-)
+    # LLM Forecast Insight Section
+st.subheader("💬 Ask the LLM about this forecast")
 
+user_question = st.text_area("Ask a question or request a summary", placeholder="e.g. What risks are present in this forecast?")
 if st.button("Generate Insight"):
-    import openai
-
     try:
-        openai.api_key = st.secrets["openai"]["api_key"]
+        from openai import OpenAI
+        client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 
-        # Prepare last 24-hour slice for context
+        # Prepare summary data for context
         context_summary = df_day[["Predicted Load", "load", "Error %", "Imbalance Risk", "Peak Load"]].tail(24).to_csv()
 
         system_prompt = (
-            "You are a forecasting assistant helping a UK energy trader assess electricity demand. "
-            "Interpret the user's question using the forecast data, highlight risk, imbalance potential, and any trading or grid flexibility insights."
+            "You are an assistant helping an electricity trader understand UK demand forecasts. "
+            "Use the forecast results to answer the user's question. "
+            "Explain risks, anomalies, or actions they might consider."
         )
 
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Data:\n{context_summary}\n\nQuestion:\n{user_question}"}
+            {"role": "user", "content": f"The forecast data is:\n{context_summary}\n\nUser question: {user_question}"}
         ]
 
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=messages,
             temperature=0.3,
         )
-        st.success(response["choices"][0]["message"]["content"])
+
+        st.success(response.choices[0].message.content)
 
     except Exception as e:
-        st.error(f"LLM call failed: {e}")    
+        st.error(f"LLM call failed: {e}")
 
     # Why built
     with st.expander("📘 Why I Built This Tool"):
