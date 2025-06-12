@@ -55,7 +55,4 @@ This app showcases not just model performance but **when** errors happen, highli
 * `uk_demand_data.csv` – Preprocessed demand + weather data
 * `requirements.txt` – Dependencies for deployment
 
-## ✅ Try It Live
-
-> ([(https://electricity-forecasting-v2.streamlit.app/e](https://electricity-forecasting-v2.streamlit.app/))
 
