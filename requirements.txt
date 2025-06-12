@@ -1,0 +1,9 @@
+streamlit
+pandas
+numpy
+plotly
+xgboost
+shap
+scikit-learn
+matplotlib
+holidays
