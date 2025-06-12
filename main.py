@@ -212,31 +212,31 @@ if st.button("Generate Insight"):
     except Exception as e:
         st.error(f"LLM call failed: {e}")
 
-# 📘 Project Overview
-with st.expander("📘 Project Overview", expanded=False):
-    st.markdown("""
-**UK Electricity Demand Forecasting App**
-
-This tool simulates short-term load forecasting using multiple models including **XGBoost**, **Random Forest**, and **Linear Regression**.
-
-It integrates weather data, engineered lag features, and calendar effects to simulate real-world forecasting challenges — including during peak demand or under stress test scenarios.
-
-🔍 **Data Sources:**
-- ENTSO-E Transparency Platform (UK load data 2015–2020)
-- Open-Meteo Historical API (London temperature)
-- UK Public Holidays (calendar flags)
-
-🧠 **Key Features:**
-- Actual vs predicted load visualization
-- Forecast error % and imbalance risk alerts
-- Recursive simulation with optional stress testing
-- Peak load detection and flagging
-- GPT-powered insight assistant (OpenAI API)
-
-🛠️ **Why I Built This**
-I created this app to explore how forecasting models can support real-time energy trading and grid operations. It showcases:
-- How small forecast errors can escalate during peak hours
-- How model-driven tools can flag operational risks early
-- How automation and explainability could assist decision-makers in flexible, renewables-heavy power systems
-    """)
+    # 📘 Project Overview
+    with st.expander("📘 Project Overview", expanded=False):
+        st.markdown("""
+    **UK Electricity Demand Forecasting App**
+    
+    This tool simulates short-term load forecasting using multiple models including **XGBoost**, **Random Forest**, and **Linear Regression**.
+    
+    It integrates weather data, engineered lag features, and calendar effects to simulate real-world forecasting challenges — including during peak demand or under stress test scenarios.
+    
+    🔍 **Data Sources:**
+    - ENTSO-E Transparency Platform (UK load data 2015–2020)
+    - Open-Meteo Historical API (London temperature)
+    - UK Public Holidays (calendar flags)
+    
+    🧠 **Key Features:**
+    - Actual vs predicted load visualization
+    - Forecast error % and imbalance risk alerts
+    - Recursive simulation with optional stress testing
+    - Peak load detection and flagging
+    - GPT-powered insight assistant (OpenAI API)
+    
+    🛠️ **Why I Built This**
+    I created this app to explore how forecasting models can support real-time energy trading and grid operations. It showcases:
+    - How small forecast errors can escalate during peak hours
+    - How model-driven tools can flag operational risks early
+    - How automation and explainability could assist decision-makers in flexible, renewables-heavy power systems
+        """)
 
