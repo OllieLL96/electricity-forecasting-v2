@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import xgboost as xgb
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from datetime import timedelta
 
@@ -45,47 +47,58 @@ def recursive_forecast(df, model, features, start_ts, forecast_range, stress_tes
 
     return pd.DataFrame({"timestamp": timestamps, "Predicted Load": preds}).set_index("timestamp")
 
-# --- Load data and model ---
+# --- Load data ---
 @st.cache_data
 def load_data():
     df = pd.read_csv("uk_demand_data.csv", parse_dates=["timestamp"])
     df.set_index("timestamp", inplace=True)
     return df
 
+# --- Train models ---
 @st.cache_resource
-def load_model():
-    st.write("📦 Loading data...")
+def train_models():
     df = load_data()
-
-    st.write("🔧 Fitting model...")
-    model = xgb.XGBRegressor()
     features = ["temp_C", "hour", "dayofweek", "is_weekend", "is_peak_hour", "is_holiday", "lag_24h", "lag_168h"]
     X = df[features]
     y = df["load"]
 
-    model.fit(X, y)
-    st.write("✅ Model ready.")
-    return model
+    xgb_model = xgb.XGBRegressor()
+    xgb_model.fit(X, y)
+
+    rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+    rf_model.fit(X, y)
+
+    lr_model = LinearRegression()
+    lr_model.fit(X, y)
+
+    return {
+        "XGBoost": xgb_model,
+        "Random Forest": rf_model,
+        "Linear Regression": lr_model
+    }
 
 # --- App UI ---
 st.set_page_config(page_title="Electricity Forecasting App", layout="wide")
 st.title("⚡ UK Electricity Demand Forecasting with Weather & Peak Risk")
 
 st.markdown("""
-This tool demonstrates a real-time electricity demand forecast model built with **XGBoost**, leveraging:
-- Historical demand data
-- Weather (temperature)
-- Time-based features (hour, weekday, holiday)
+This tool demonstrates a real-time electricity demand forecast model built with multiple models:
+- **XGBoost** (default, boosted trees)
+- **Random Forest**
+- **Linear Regression**
 
-It highlights forecast accuracy, peak load risk, and model explainability — designed with energy trading & grid ops in mind.
+It leverages historical demand, weather, and calendar effects to simulate intra-day forecasting.
 """)
 
 df = load_data()
-model = load_model()
+models = train_models()
 features = ["temp_C", "hour", "dayofweek", "is_weekend", "is_peak_hour", "is_holiday", "lag_24h", "lag_168h"]
 
 # Sidebar
 st.sidebar.header("🔧 Forecast Settings")
+model_choice = st.sidebar.selectbox("Choose prediction model:", list(models.keys()))
+selected_model = models[model_choice]
+
 valid_dates = df.index.normalize().unique()
 selected_date = st.sidebar.date_input("Select a date to simulate forecast:", value=valid_dates[-2], min_value=valid_dates[0], max_value=valid_dates[-2])
 forecast_range = st.sidebar.slider("Forecast range (hours):", 6, 24, 24)
@@ -101,13 +114,13 @@ if df_day.empty:
     st.warning("No data available for this date.")
 else:
     if use_recursive:
-        st.markdown("🌀 **Using recursive forecasting simulation...**")
-        df_preds = recursive_forecast(df, model, features, start_ts, forecast_range, stress_test=stress_test)
+        st.markdown(f"🌀 **Using recursive forecasting simulation ({model_choice})...**")
+        df_preds = recursive_forecast(df, selected_model, features, start_ts, forecast_range, stress_test=stress_test)
         df_day["Predicted Load"] = df_preds["Predicted Load"]
     else:
-        st.markdown("✅ **Using direct prediction from known inputs...**")
+        st.markdown(f"✅ **Using direct prediction from known inputs ({model_choice})...**")
         X_day = df_day[features]
-        df_day["Predicted Load"] = model.predict(X_day)
+        df_day["Predicted Load"] = selected_model.predict(X_day)
 
     y_true = df_day["load"]
     df_day["Error"] = df_day["Predicted Load"] - y_true
@@ -119,7 +132,7 @@ else:
     df_day["Peak Load"] = df_day["load"] >= threshold
 
     # Visuals
-    st.subheader("📈 Actual vs Predicted Load")
+    st.subheader(f"📈 Actual vs Predicted Load ({model_choice})")
     fig1 = px.line(df_day, x=df_day.index, y=["load", "Predicted Load"], labels={"value": "MW", "timestamp": "Time"})
     st.plotly_chart(fig1, use_container_width=True)
 
@@ -141,7 +154,7 @@ else:
     st.subheader("📋 Forecast Performance")
     rmse = np.sqrt(mean_squared_error(y_true, df_day["Predicted Load"]))
     mae = mean_absolute_error(y_true, df_day["Predicted Load"])
-    st.markdown(f"**RMSE:** {rmse:.2f} MW  |  **MAE:** {mae:.2f} MW")
+    st.markdown(f"**Model:** {model_choice}  |  **RMSE:** {rmse:.2f} MW  |  **MAE:** {mae:.2f} MW")
 
     # Insights
     st.subheader("🧠 Insights from This Forecast")
