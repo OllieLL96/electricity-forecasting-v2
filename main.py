@@ -82,13 +82,14 @@ st.set_page_config(page_title="Electricity Forecasting App", layout="wide")
 st.title("⚡ UK Electricity Demand Forecasting with Weather & Peak Risk")
 
 st.markdown("""
-This app showcases a real-time electricity demand forecasting system using multiple machine learning models:
+This app simulates real-time intra-day electricity demand forecasting — designed for energy traders, forecasters, and grid operators.
 
+It uses multiple machine learning models trained on historical demand, temperature, and calendar features to replicate short-term operational forecasting under realistic conditions.
+
+Models included:
 - **XGBoost** (gradient-boosted trees)
 - **Random Forest**
 - **Linear Regression**
-
-It combines historical demand, temperature data, and calendar effects to simulate short-term (intra-day) load forecasting under realistic market conditions.
 
 """)
 
