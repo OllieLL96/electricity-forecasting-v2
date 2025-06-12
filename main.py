@@ -177,6 +177,35 @@ else:
         """)
     else:
         st.write("No corrective flex action needed in this interval.")
+        
+    # LLM Forecast Insight Section
+    st.subheader("💬 Ask the LLM about this forecast")
+
+    user_question = st.text_area("Ask a question or request a summary", placeholder="e.g. What risks are present in this forecast?")
+    if st.button("Generate Insight"):
+        import openai
+        openai.api_key = st.secrets["openai"]["api_key"]
+
+        # Prepare summary
+        context_summary = df_day[["Predicted Load", "load", "Error %", "Imbalance Risk", "Peak Load"]].tail(24).to_csv()
+
+        # Prompt
+        system_prompt = (
+            "You are an assistant helping an electricity trader understand UK demand forecasts. "
+            "Use the forecast results to answer the user's question. "
+            "Explain risks, anomalies, or actions they might consider."
+        )
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"The forecast data is:\n{context_summary}\n\nUser question: {user_question}"}
+        ]
+
+        try:
+            response = openai.ChatCompletion.create(model="gpt-4", messages=messages)
+            st.success(response["choices"][0]["message"]["content"])
+        except Exception as e:
+            st.error(f"LLM call failed: {e}")
 
     # Why built
     with st.expander("📘 Why I Built This Tool"):
