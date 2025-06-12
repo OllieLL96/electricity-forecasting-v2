@@ -180,8 +180,8 @@ else:
     else:
         st.write("No corrective flex action needed in this interval.")
 
-    # LLM Forecast Insight Section
-st.subheader("💬 Ask the LLM about this forecast")
+    # GPT-Powered Assistant Forecast Insight Section
+st.subheader("💬 Ask the GPT assistant about this forecast")
 
 user_question = st.text_area("Ask a question or request a summary", placeholder="e.g. What risks are present in this forecast?")
 if st.button("Generate Insight"):
@@ -240,5 +240,11 @@ I created this app to explore how forecasting models can support real-time energ
 - How small forecast errors can escalate during peak hours
 - How model-driven tools can flag operational risks early
 - How automation and explainability could assist decision-makers in flexible, renewables-heavy power systems
+
+🔮 **What Could Come Next?**
+- Live API integrations with real-time weather forecasts and grid demand data (e.g. from National Grid ESO)
+- Pricing simulations to estimate imbalance costs or the value of flexible asset dispatch
+- Extend the model to support regional forecasts for local flexibility zones
+- Design a live retraining and evaluation loop to keep models current with shifting demand patterns
     """)
 
