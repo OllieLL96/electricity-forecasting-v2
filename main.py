@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -8,7 +7,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from datetime import timedelta
 
 # --- Helper: Recursive Forecasting ---
-def recursive_forecast(df, model, features, start_ts, forecast_range):
+def recursive_forecast(df, model, features, start_ts, forecast_range, stress_test=False):
     df_forecast = df.copy()
     preds = []
     timestamps = pd.date_range(start=start_ts, periods=forecast_range, freq="H", tz="Europe/London")
@@ -16,13 +15,13 @@ def recursive_forecast(df, model, features, start_ts, forecast_range):
     for t in timestamps:
         row = df_forecast.loc[t - pd.Timedelta(hours=1)].copy()
 
+        lag_24h = df_forecast.loc[t - pd.Timedelta(hours=24), "load"] if (t - pd.Timedelta(hours=24)) in df_forecast.index else preds[-24] if len(preds) >= 24 else np.nan
+        lag_168h = df_forecast.loc[t - pd.Timedelta(hours=168), "load"] if (t - pd.Timedelta(hours=168)) in df_forecast.index else preds[-168] if len(preds) >= 168 else np.nan
+
         if stress_test:
             if not pd.isnull(lag_24h): lag_24h *= np.random.normal(1, 0.05)
             if not pd.isnull(lag_168h): lag_168h *= np.random.normal(1, 0.05)
             row["temp_C"] -= np.random.choice([0, 2, 4])
-
-        lag_24h = df_forecast.loc[t - pd.Timedelta(hours=24), "load"] if (t - pd.Timedelta(hours=24)) in df_forecast.index else preds[-24] if len(preds) >= 24 else np.nan
-        lag_168h = df_forecast.loc[t - pd.Timedelta(hours=168), "load"] if (t - pd.Timedelta(hours=168)) in df_forecast.index else preds[-168] if len(preds) >= 168 else np.nan
 
         feature_row = {
             "temp_C": row["temp_C"],
@@ -57,13 +56,13 @@ def load_data():
 def load_model():
     st.write("📦 Loading data...")
     df = load_data()
-    
+
     st.write("🔧 Fitting model...")
     model = xgb.XGBRegressor()
     features = ["temp_C", "hour", "dayofweek", "is_weekend", "is_peak_hour", "is_holiday", "lag_24h", "lag_168h"]
     X = df[features]
     y = df["load"]
-    
+
     model.fit(X, y)
     st.write("✅ Model ready.")
     return model
@@ -91,6 +90,7 @@ valid_dates = df.index.normalize().unique()
 selected_date = st.sidebar.date_input("Select a date to simulate forecast:", value=valid_dates[-2], min_value=valid_dates[0], max_value=valid_dates[-2])
 forecast_range = st.sidebar.slider("Forecast range (hours):", 6, 24, 24)
 use_recursive = st.sidebar.checkbox("🔁 Use Recursive Forecasting", value=False)
+stress_test = st.sidebar.checkbox("🔥 Enable Stress Test Mode", value=False)
 
 # Data slice
 start_ts = pd.Timestamp(selected_date, tz="Europe/London")
@@ -102,7 +102,7 @@ if df_day.empty:
 else:
     if use_recursive:
         st.markdown("🌀 **Using recursive forecasting simulation...**")
-        df_preds = recursive_forecast(df, model, features, start_ts, forecast_range)
+        df_preds = recursive_forecast(df, model, features, start_ts, forecast_range, stress_test=stress_test)
         df_day["Predicted Load"] = df_preds["Predicted Load"]
     else:
         st.markdown("✅ **Using direct prediction from known inputs...**")
