@@ -1,58 +1,41 @@
-# ⚡ Electricity Demand Forecasting with Weather, Risk & Peak Load Context
+# ⚡ UK Electricity Demand Forecasting App
 
-This Streamlit app demonstrates a real-time electricity demand forecasting tool trained on UK data, enriched with weather inputs and logic to identify peak load and imbalance risk — designed with energy trading and grid operations in mind.
+A real-time electricity demand forecasting tool built for energy market simulation, designed with traders and grid operators in mind.
 
-## 🔍 What It Does
+## 🔍 Overview
 
-* **Forecasts hourly UK electricity demand** using an XGBoost regression model
-* Incorporates:
+This interactive Streamlit app forecasts hourly UK electricity demand using weather, calendar, and time-based features. It supports multiple ML models, stress testing, and dynamic forecast evaluation with LLM-generated insights.
 
-  * Historical demand trends (lags)
-  * Weather data (temperature)
-  * Time-of-day, weekend, and holiday context
-* Simulates **real-time predictions** with user-selected dates
-* Visualizes:
+**Key Features:**
+- 📈 Forecast actual vs predicted electricity load (6–24 hour window)
+- 🔁 Choose between XGBoost, Random Forest, and Linear Regression
+- 🌦 Incorporates temperature, weekday/weekend, holiday & lag features
+- 🌀 Recursive forecasting simulation with stress test mode
+- ⚠️ Forecast error & imbalance risk flags
+- 🔌 Peak load detection & flex response recommendations
+- 🧠 GPT-powered natural language insights on forecast performance
 
-  * Actual vs Predicted Load
-  * Forecast error with imbalance risk flags
-  * Peak demand hours (top 10%)
+## 📊 Why I Built This
 
-## 📊 Why It Matters
+Grid flexibility is essential in a decarbonised energy system. I built this tool to explore:
+- Intra-day demand forecasting under changing weather or market conditions
+- How small forecasting errors could lead to imbalance risk during peak demand
+- How traders might simulate operational responses (e.g., dispatching storage)
 
-Forecasting electricity demand accurately is critical in:
+## 💡 Technologies Used
 
-* **Grid operations** — to avoid over/under-supply
-* **Trading desks** — to optimize day-ahead and intraday positions
-* **Imbalance markets** — where forecast errors become real financial penalties
+- Python, Pandas, Plotly, Streamlit
+- Scikit-learn, XGBoost
+- OpenAI API (for GPT-3.5 insights)
 
-This app showcases not just model performance but **when** errors happen, highlighting operational risk.
+## 🚀 Try It Out
 
-## 🚀 How to Use the App
+👉 [Launch the App](https://electricity-forecasting-v2.streamlit.app/)
 
-1. Select a date from the past 35-day window
-2. Choose how many hours to forecast (up to 24)
-3. Explore:
+## 📂 Files
 
-   * Forecast accuracy (RMSE, MAE)
-   * Visual error and risk flags
-   * When peaks are expected (and whether you got them right)
+- `main.py` — Streamlit app logic
+- `uk_demand_data.csv` — Historical UK load + weather feature set
+- `.streamlit/secrets.toml` — API keys (private)
 
-## 🧠 Model Details
-
-* **Model:** XGBoostRegressor
-* **Features:**
-
-  * Temperature (`temp_C`)
-  * Hour, Day of Week
-  * Weekend & Holiday flags
-  * Lagged load (`lag_24h`, `lag_168h`)
-  * Peak hour indicator
-* **Data Source:** ENTSOE & Open-Meteo
-
-## 📁 Files Included
-
-* `main.py` – Streamlit app source code
-* `uk_demand_data.csv` – Preprocessed demand + weather data
-* `requirements.txt` – Dependencies for deployment
-
-
+---
