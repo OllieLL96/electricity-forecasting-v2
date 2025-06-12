@@ -90,17 +90,42 @@ else:
                      mode="markers", marker=dict(color="orange", size=6), name="Peak Load")
     st.plotly_chart(fig3, use_container_width=True)
 
-    # --- Summary Metrics ---
+     # --- Summary Metrics ---
     st.subheader("📋 Forecast Performance")
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
     mae = mean_absolute_error(y_true, y_pred)
     st.markdown(f"**RMSE:** {rmse:.2f} MW  |  **MAE:** {mae:.2f} MW")
 
-    # --- Explanatory Notes ---
-    with st.expander("ℹ️ What is this app doing?"):
+    # --- New: Forecast Insights
+    st.subheader("🧠 Insights from This Forecast")
+    risky_hours = df_day[df_day["Imbalance Risk"]].index.hour.unique().tolist()
+    if risky_hours:
+        st.success(f"{len(risky_hours)} hours had forecast error > 5%.")
+        st.write("These occurred at hours:", risky_hours)
+        if df_day["Peak Load"].any():
+            st.info("⚡ Some of these hours overlapped with peak load — potential for imbalance risk.")
+    else:
+        st.info("✅ No high-risk forecast errors detected in this window.")
+
+    # --- New: Flex Asset Strategy Placeholder
+    st.subheader("🔌 Example Flex Response")
+    if df_day["Imbalance Risk"].any():
         st.markdown("""
-        - Trains a short-term XGBoost model on the most recent 35 days of hourly UK load
-        - Uses lag features, weather, and time context to predict future load
-        - Identifies risky forecast hours where the model may underperform (>5% error)
-        - Flags high-demand (peak) hours as additional operational risk
+        Based on the imbalance risk detected, an operator could:
+        - Dispatch **battery storage** during the most error-prone hour
+        - Shift EV charging or reduce load to reduce cost exposure
+        """)
+    else:
+        st.write("No corrective flex action needed in this interval.")
+
+    # --- Why I Built This
+    with st.expander("📘 Why I Built This Tool"):
+        st.markdown("""
+        I created this app to simulate the real-world challenges of intra-day demand forecasting.
+        
+        By integrating weather data, engineered lag features, and real-time forecast simulation,
+        I wanted to explore:
+        - How small errors can escalate during peak demand
+        - How operational risk flags could help traders and grid operators make better decisions
+        - How tools like this might support Octopus' vision of a smart, flexible, decarbonised grid
         """)
