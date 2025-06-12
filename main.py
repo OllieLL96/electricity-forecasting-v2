@@ -212,6 +212,29 @@ if st.button("Generate Insight"):
     except Exception as e:
         st.error(f"LLM call failed: {e}")
 
+    # 📘 About This Project
+with st.expander("📘 About This Project", expanded=False):
+    st.markdown("""
+**UK Electricity Demand Forecasting App**
+
+This app simulates short-term load forecasting with models like XGBoost, Random Forest, and Linear Regression.
+
+🔍 **Data Sources:**
+- ENTSO-E Transparency Platform (UK load data 2015–2020)
+- Open-Meteo Historical API (London temperature)
+- UK Public Holidays (calendar flags)
+
+🧠 **Features:**
+- Actual vs predicted load
+- Forecast error % and imbalance risk
+- Recursive simulation with stress test
+- Peak load detection
+- GPT-powered insight assistant (OpenAI API)
+
+Built as a practical forecasting demo for energy market applications, showcasing how operational tools can support flexibility, imbalance risk detection, and decision-making in a renewable-heavy grid environment.
+    """)
+
+    
     # Why built
     with st.expander("📘 Why I Built This Tool"):
         st.markdown("""
