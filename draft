@@ -1,0 +1,104 @@
+# ⚡ UK Electricity Demand Forecasting App
+
+An interactive demand forecasting app built to simulate the real-time pressures of short-term electricity trading. Designed for traders, grid operators, and system forecasters, it supports intraday decision-making around imbalance risk, flexible dispatch timing, and peak load management.
+
+🔗 [Live Streamlit Demo](https://electricity-forecasting-v2.streamlit.app/)  
+📂 [GitHub Repository](https://github.com/OllieLL96/electricity-forecasting-v2)
+
+---
+
+## 🔍 Overview
+
+This app forecasts UK electricity demand up to 24 hours ahead using weather and time-based features. It allows users to simulate real-world trading scenarios such as delayed reforecasting, peak stress periods, and dispatch planning around system constraints.
+
+The tool was developed to mirror the decision pressure and uncertainty faced in short-term power trading environments — and is inspired by the kind of work done by Octopus Energy Trading.
+
+---
+
+## 📈 Features
+
+- Real-time forecast vs. actual demand visualisation
+- Toggle between **XGBoost**, **Random Forest**, and **Linear Regression** models
+- Recursive forecasting to simulate real-time updates over a rolling horizon
+- Stress-testing for operational edge cases (e.g. cold weather spikes, lag drift)
+- Forecast error threshold flagging to simulate imbalance cost risk
+- Peak load detection with suggested flexible dispatch timing
+- GPT-powered narrative summaries to support fast situational awareness
+
+---
+
+## 🧠 Trading Relevance
+
+This tool mimics key workflows in short-term power trading:
+
+- **Forecast error impacts**: Understand how over/under-forecasting drives imbalance cost exposure
+- **Dispatch timing**: Identify when flexible assets should respond to price or demand signals
+- **Reforecasting logic**: Simulate how strategy shifts with updated information
+- **Stress-testing**: Evaluate how forecasts behave under operational stress scenarios
+
+---
+
+## 📊 Key Results
+
+- **XGBoost** consistently outperformed other models under volatile conditions (e.g. holiday weekends or simulated cold snaps)
+- Recursive reforecasting improved MAE by up to 15% vs. static forecasts on high-volatility days
+- GPT summary generation provided fast narrative insight for traders evaluating risk windows
+
+---
+
+## 📂 Data Sources
+
+| Data Type                   | Source                               | Notes                                                              |
+|----------------------------|--------------------------------------|--------------------------------------------------------------------|
+| Electricity Load & Gen     | ENTSO-E Transparency Platform         | Historical UK load data (2015–2020)                                |
+| Weather (Temperature)      | Open-Meteo Historical API             | Hourly temperature for London                                      |
+| Calendar Holidays          | UK Government API                     | Used to flag public holidays in the model                          |
+
+Merged and cleaned dataset: `uk_demand_data.csv`
+
+---
+
+## 🧪 Models Used
+
+Three forecast models are available in the app:
+
+- **XGBoost Regressor**: Optimised for tabular performance, best in tests
+- **Random Forest**: Robust ensemble baseline
+- **Linear Regression**: Simple, interpretable benchmark
+
+**Engineered features include:**
+- Hour of day, day of week, weekend flag
+- Lagged demand (t-24h, t-168h)
+- Public holiday flags
+- Hourly temperature
+- Peak hour indicator
+
+---
+
+## 🛠 Future Development
+
+- Live data ingestion from National Grid ESO (API-based)
+- Overlay of STOD price curves for flex value simulation
+- Asset-specific dispatch modelling (e.g. batteries, CHP)
+- Cost-weighted imbalance exposure estimates
+- Market-driven decision simulation for flexible portfolios
+
+---
+
+## 🧰 Tech Stack
+
+- Python (pandas, NumPy, scikit-learn, XGBoost)
+- Streamlit
+- Open-Meteo API, UK Gov API
+- GPT (via OpenAI integration)
+
+---
+
+## 🧠 Author Notes
+
+This project was developed as part of my pivot into the trading space, with a focus on applying machine learning, real-time simulation, and energy market concepts in a way that mirrors operational desk decision-making.
+
+Built to learn — and to share.
+
+---
+
